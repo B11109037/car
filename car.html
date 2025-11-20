@@ -260,108 +260,136 @@
       <button id="btn4"><span>橋 4</span> = <span class="value">1</span></button>
     </div>
     <button id="startBtn" class="start-btn">開始</button>
+
+      <!-- 新增：前往站長畫面按鈕 -->
+    <button id="stationBtn" class="start-btn" style="margin-top:6px; font-size:14px;">
+      前往站長畫面
+    </button>
+
     <div id="message" class="message"></div>
     <div class="hint">通關條件：橋 1 = 1，橋 2 = 0，橋 3 = 0，橋 4 = 0（也就是 1000）。</div>
   </div>
 
-  <script>
-    // 初始狀態：橋1=0(在下方)，橋2~4=1(吊在上方)
-    let states = [0, 1, 1, 1];
-    const correctPattern = [1, 0, 0, 0];
+ <script>
+  // 初始狀態：橋1=0(在下方)，橋2~4=1(吊在上方)
+  let states = [0, 1, 1, 1];
+  const correctPattern = [1, 0, 0, 0];
 
-    const car = document.getElementById("car");
-    const msg = document.getElementById("message");
+  // ✅ 一進來先看 localStorage 有沒有之前存的狀態，有就套用
+  const saved = localStorage.getItem("bridgeStates");
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length === 4) {
+        states = parsed;
+      }
+    } catch (e) {
+      console.error("解析 bridgeStates 失敗：", e);
+    }
+  }
 
-    const bridgeEls = [
-      document.getElementById("bridge1"),
-      document.getElementById("bridge2"),
-      document.getElementById("bridge3"),
-      document.getElementById("bridge4"),
-    ];
+  const car = document.getElementById("car");
+  const msg = document.getElementById("message");
 
-    const btnEls = [
-      document.getElementById("btn1"),
-      document.getElementById("btn2"),
-      document.getElementById("btn3"),
-      document.getElementById("btn4"),
-    ];
+  const bridgeEls = [
+    document.getElementById("bridge1"),
+    document.getElementById("bridge2"),
+    document.getElementById("bridge3"),
+    document.getElementById("bridge4"),
+  ];
 
-    // 更新某一座橋的畫面：依照 states + 規則
-    function updateBridgeView(index) {
-      const value = states[index]; // 0 or 1
-      const bridge = bridgeEls[index];
-      const btn = btnEls[index];
-      const valueSpan = btn.querySelector(".value");
-      valueSpan.textContent = value;
+  const btnEls = [
+    document.getElementById("btn1"),
+    document.getElementById("btn2"),
+    document.getElementById("btn3"),
+    document.getElementById("btn4"),
+  ];
 
-      // 標記按鈕樣式
+  // 更新某一座橋的畫面：依照 states + 規則
+  function updateBridgeView(index) {
+    const value = states[index]; // 0 or 1
+    const bridge = bridgeEls[index];
+    const btn = btnEls[index];
+    const valueSpan = btn.querySelector(".value");
+    valueSpan.textContent = value;
+
+    // 標記按鈕樣式
+    if (value === 1) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+
+    // 視覺邏輯：
+    // 橋1：value=0 => 在下方，value=1 => 與道路對齊（可通過）
+    if (index === 0) {
       if (value === 1) {
-        btn.classList.add("active");
+        bridge.classList.remove("bridge-down");
+        bridge.classList.add("bridge-aligned");
       } else {
-        btn.classList.remove("active");
+        bridge.classList.remove("bridge-aligned");
+        bridge.classList.add("bridge-down");
       }
-
-      // 視覺邏輯：
-      // 橋1：value=0 => 在下方，value=1 => 與道路對齊（可通過）
-      if (index === 0) {
-        if (value === 1) {
-          bridge.classList.remove("bridge-down");
-          bridge.classList.add("bridge-aligned");
-        } else {
-          bridge.classList.remove("bridge-aligned");
-          bridge.classList.add("bridge-down");
-        }
+    } else {
+      // 橋2、3、4：value=1 => 吊在上面，value=0 => 與道路對齊（可通過）
+      if (value === 0) {
+        bridge.classList.remove("bridge-up");
+        bridge.classList.add("bridge-aligned");
       } else {
-        // 橋2、3、4：value=1 => 吊在上面，value=0 => 與道路對齊（可通過）
-        if (value === 0) {
-          bridge.classList.remove("bridge-up");
-          bridge.classList.add("bridge-aligned");
-        } else {
-          bridge.classList.remove("bridge-aligned");
-          bridge.classList.add("bridge-up");
-        }
+        bridge.classList.remove("bridge-aligned");
+        bridge.classList.add("bridge-up");
       }
     }
+  }
 
-    // 初始化
-    for (let i = 0; i < 4; i++) {
-      updateBridgeView(i);
-    }
+  // 初始化：套用目前的 states（可能已經從 localStorage 恢復）
+  for (let i = 0; i < 4; i++) {
+    updateBridgeView(i);
+  }
 
-    // 綁定按鈕：點一下在 0 / 1 之間切換
-    btnEls.forEach((btn, index) => {
-      btn.addEventListener("click", () => {
-        states[index] = states[index] === 0 ? 1 : 0;
-        updateBridgeView(index);
-        resetCarPosition();
-        msg.textContent = "";
-        msg.className = "message";
-      });
-    });
-
-    function resetCarPosition() {
-      // 移除動畫 class，讓車子回到起點
-      car.classList.remove("to-goal", "to-sea");
-      // 強制重繪，確保下一次動畫會觸發
-      void car.offsetWidth;
-    }
-
-    // 開始模擬
-    document.getElementById("startBtn").addEventListener("click", () => {
+  // 綁定按鈕：點一下在 0 / 1 之間切換
+  btnEls.forEach((btn, index) => {
+    btn.addEventListener("click", () => {
+      states[index] = states[index] === 0 ? 1 : 0;
+      updateBridgeView(index);
       resetCarPosition();
-
-      const isCorrect = states.every((v, i) => v === correctPattern[i]);
-
-      if (isCorrect) {
-        msg.textContent = "✅ 車子順利通過四座吊橋，抵達終點！(1000)";
-        msg.className = "message success";
-        car.classList.add("to-goal");
-      } else {
-        msg.textContent = "❌ 吊橋狀態錯誤，車子掉進海裡了。再試試看能不能找到正確的 0/1 組合！";
-        msg.className = "message fail";
-        car.classList.add("to-sea");
-      }
+      msg.textContent = "";
+      msg.className = "message";
     });
-  </script>
+  });
+
+  function resetCarPosition() {
+    // 移除動畫 class，讓車子回到起點
+    car.classList.remove("to-goal", "to-sea");
+    // 強制重繪，確保下一次動畫會觸發
+    void car.offsetWidth;
+  }
+
+  // 開始模擬
+  document.getElementById("startBtn").addEventListener("click", () => {
+    resetCarPosition();
+
+    const isCorrect = states.every((v, i) => v === correctPattern[i]);
+
+    if (isCorrect) {
+      msg.textContent = "✅ 車子順利通過四座吊橋，抵達終點！(1000)";
+      msg.className = "message success";
+      car.classList.add("to-goal");
+    } else {
+      msg.textContent = "❌ 吊橋狀態錯誤，車子掉進海裡了。再試試看能不能找到正確的 0/1 組合！";
+      msg.className = "message fail";
+      car.classList.add("to-sea");
+    }
+  });
+
+  // ✅ 前往站長畫面：只負責「存狀態 + 跳頁」，不處理返回
+  document.getElementById("stationBtn").addEventListener("click", () => {
+    // 將 states 陣列存到 localStorage（例如 [1,0,0,0]）
+    localStorage.setItem("bridgeStates", JSON.stringify(states));
+    // 跳轉到站長畫面
+    window.location.href = "station.html";
+  });
+</script>
+
 </body>
 </html>
