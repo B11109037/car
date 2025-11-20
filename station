@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>站長監控畫面</title>
+  <style>
+    body {
+      font-family: "Noto Sans TC", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f3f3f3;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 30px 10px;
+    }
+
+    .station-wrapper {
+      width: 900px;
+      border-radius: 20px;
+      border: 3px solid #333;
+      background: linear-gradient(#ffffff, #f5f7fb);
+      box-shadow: 0 8px 0 #b0bec5, 0 18px 25px rgba(0, 0, 0, 0.18);
+      padding: 20px 26px 24px;
+    }
+
+    .header {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+
+    .header small {
+      font-size: 12px;
+      color: #999;
+      font-weight: 400;
+    }
+
+    .content {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      margin-top: 8px;
+    }
+
+    /* ===== 列車長：美式卡通背影 ===== */
+    .operator {
+      width: 200px;
+      height: 240px;
+      position: relative;
+    }
+
+    .operator .shadow {
+      position: absolute;
+      bottom: -10px;
+      left: 22px;
+      width: 150px;
+      height: 18px;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.35), transparent 70%);
+    }
+
+    .operator .body {
+      position: absolute;
+      bottom: 0;
+      left: 45px;
+      width: 110px;
+      height: 150px;
+      background: linear-gradient(#ffd54f, #ffb300);
+      border-radius: 30px;
+      border: 3px solid #263238;
+    }
+
+    .operator .body::before {
+      content: "";
+      position: absolute;
+      top: 18px;
+      left: 8px;
+      right: 8px;
+      height: 18px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 999px;
+    }
+
+    .operator .head {
+      position: absolute;
+      bottom: 150px;
+      left: 54px;
+      width: 90px;
+      height: 90px;
+      background: #f5c08b;
+      border-radius: 50%;
+      border: 3px solid #263238;
+    }
+
+    /* 耳朵 */
+    .operator .head::before,
+    .operator .head::after {
+      content: "";
+      position: absolute;
+      top: 32px;
+      width: 14px;
+      height: 22px;
+      background: #f5c08b;
+      border-radius: 50%;
+      border: 2px solid #263238;
+    }
+    .operator .head::before { left: -10px; }
+    .operator .head::after  { right: -10px; }
+
+    /* 車長帽（美式卡通風） */
+    .operator .hat-brim {
+      position: absolute;
+      bottom: 230px;
+      left: 45px;
+      width: 120px;
+      height: 24px;
+      background: #42a5f5;
+      border-radius: 14px 14px 10px 10px;
+      border: 3px solid #263238;
+      box-shadow: 0 4px 0 #1565c0;
+    }
+
+    .operator .hat-top {
+      position: absolute;
+      bottom: 252px;
+      left: 58px;
+      width: 94px;
+      height: 30px;
+      background: linear-gradient(#1976d2, #0d47a1);
+      border-radius: 18px 18px 10px 10px;
+      border: 3px solid #263238;
+    }
+
+    .operator .hat-top::before {
+      content: "";
+      position: absolute;
+      top: 6px;
+      left: 18px;
+      width: 58px;
+      height: 10px;
+      background: #ffeb3b;
+      border-radius: 999px;
+      border: 2px solid #263238;
+    }
+
+    /* ===== 機台螢幕區 ===== */
+    .console {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .screen-frame {
+      position: relative;
+      border-radius: 20px;
+      border: 3px solid #111827;
+      background: radial-gradient(circle at top, #28343f 0, #000 60%);
+      padding: 18px 22px;
+      color: #e0f7fa;
+      font-family: "Consolas", "Courier New", monospace;
+      box-shadow: 0 6px 0 #000, 0 0 24px rgba(0, 0, 0, 0.8);
+    }
+
+    .screen-frame::before,
+    .screen-frame::after {
+      content: "";
+      position: absolute;
+      top: 10px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid #111827;
+      box-shadow: 0 0 5px rgba(255,255,255,0.6);
+      background: radial-gradient(circle, #ffeb3b 0, #f57f17 60%);
+    }
+    .screen-frame::before { left: 14px; }
+    .screen-frame::after  { right: 14px; }
+
+    .screen-title {
+      font-size: 14px;
+      margin-bottom: 10px;
+      color: #90caf9;
+      letter-spacing: 1px;
+    }
+
+    .screen-title .tag {
+      color: #ffcc80;
+    }
+
+    .screen-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .screen-item {
+      flex: 1;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 2px solid #263238;
+      background: linear-gradient(#111827, #000000);
+      text-align: center;
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.85);
+    }
+
+    .screen-item .label {
+      color: #ffeb3b;
+      margin-right: 6px;
+      font-weight: 600;
+    }
+
+    .screen-item .value {
+      font-weight: 800;
+      color: #00e676;
+      font-size: 20px;
+      text-shadow: 0 0 7px rgba(0, 230, 118, 0.9);
+    }
+
+    .footer {
+      margin-top: 18px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .back-btn {
+      padding: 10px 22px;
+      border-radius: 16px;
+      border: 2px solid #333;
+      background: #e3f2fd;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 5px 0 #90a4ae;
+    }
+
+    .back-btn:hover {
+      background: #bbdefb;
+    }
+  </style>
+</head>
+<body>
+  <div class="station-wrapper">
+    <div class="header">
+      <div>站長監控畫面（只能看見 0 / 1 狀態）</div>
+      <small>狀態來自剛才在吊橋畫面調整的按鈕</small>
+    </div>
+
+    <div class="content">
+      <!-- 列車長（背對我們） -->
+      <div class="operator">
+        <div class="hat-top"></div>
+        <div class="hat-brim"></div>
+        <div class="head"></div>
+        <div class="body"></div>
+        <div class="shadow"></div>
+      </div>
+
+      <!-- 機台螢幕 -->
+      <div class="console">
+        <div class="screen-frame">
+          <div class="screen-title">
+            <span class="tag">▌</span> 橋面狀態監控面板
+          </div>
+          <div class="screen-row">
+            <div class="screen-item">
+              <span class="label">橋 1</span>=
+              <span id="screen1" class="value">0</span>
+            </div>
+            <div class="screen-item">
+              <span class="label">橋 2</span>=
+              <span id="screen2" class="value">1</span>
+            </div>
+          </div>
+          <div class="screen-row">
+            <div class="screen-item">
+              <span class="label">橋 3</span>=
+              <span id="screen3" class="value">1</span>
+            </div>
+            <div class="screen-item">
+              <span class="label">橋 4</span>=
+              <span id="screen4" class="value">1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button id="backBtn" class="back-btn">返回調整吊橋</button>
+    </div>
+  </div>
+
+  <script>
+    // 從 localStorage 讀取 car.html 存進來的橋狀態（只讀）
+    const raw = localStorage.getItem("bridgeStates");
+    let states;
+    try {
+      states = raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      states = null;
+    }
+
+    if (!Array.isArray(states) || states.length !== 4) {
+      // 若沒有資料，就用預設，不影響 car.html
+      states = [0, 1, 1, 1];
+    }
+
+    const screenEls = [
+      document.getElementById("screen1"),
+      document.getElementById("screen2"),
+      document.getElementById("screen3"),
+      document.getElementById("screen4"),
+    ];
+
+    // 顯示 0 / 1 到螢幕
+    states.forEach((v, i) => {
+      screenEls[i].textContent = v;
+    });
+
+    // 返回 car.html（car.html 會自己從 localStorage 恢復狀態）
+    document.getElementById("backBtn").addEventListener("click", () => {
+      window.location.href = "car.html";
+    });
+  </script>
+</body>
+</html>
