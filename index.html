@@ -159,6 +159,12 @@
       transform: translateY(35px);
     }
 
+    /* ---- 共用 ---- */
+    .hidden {
+      display: none;
+    }
+
+    /* ====== 列車控制畫面 ====== */
     .controls {
       margin-top: 18px;
       display: flex;
@@ -207,6 +213,20 @@
       background: #e8f4ff;
     }
 
+    .view-station-btn {
+      margin-top: 6px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #fff8e1;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .view-station-btn:hover {
+      background: #ffefc2;
+    }
+
     .message {
       margin-top: 10px;
       min-height: 24px;
@@ -229,6 +249,152 @@
       font-size: 12px;
       color: #666;
     }
+
+    /* ====== 站長頁面 ====== */
+    .station-view {
+      margin-top: 18px;
+      width: 820px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      background: #ffffff;
+      padding: 16px 20px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .station-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #444;
+    }
+
+    .station-main {
+      display: flex;
+      align-items: flex-end;
+      gap: 30px;
+      margin-top: 6px;
+    }
+
+    /* 簡單畫一個背對我們的站長 */
+    .operator {
+      width: 120px;
+      height: 160px;
+      position: relative;
+    }
+
+    .operator .body {
+      position: absolute;
+      bottom: 0;
+      left: 28px;
+      width: 64px;
+      height: 100px;
+      background: #ffd54f;
+      border-radius: 12px;
+      border: 2px solid #333;
+    }
+
+    .operator .head {
+      position: absolute;
+      bottom: 100px;
+      left: 36px;
+      width: 48px;
+      height: 48px;
+      background: #f5c08b;
+      border-radius: 50%;
+      border: 2px solid #333;
+    }
+
+    .operator .hat {
+      position: absolute;
+      bottom: 138px;
+      left: 30px;
+      width: 60px;
+      height: 18px;
+      background: #1565c0;
+      border-radius: 6px 6px 2px 2px;
+      border: 2px solid #333;
+      border-bottom-width: 3px;
+    }
+
+    /* 螢幕 + 機台 */
+    .console {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .screen-frame {
+      border-radius: 10px;
+      border: 2px solid #333;
+      background: #111;
+      padding: 10px 12px;
+      color: #e0f7fa;
+      font-family: "Consolas","Courier New",monospace;
+      font-size: 14px;
+    }
+
+    .screen-title {
+      font-size: 12px;
+      margin-bottom: 6px;
+      color: #90caf9;
+    }
+
+    .screen-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .screen-item {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 6px;
+      border: 1px solid #555;
+      text-align: center;
+      background: #222;
+    }
+
+    .screen-item span.label {
+      color: #ffeb3b;
+      margin-right: 4px;
+    }
+
+    .screen-item span.value {
+      font-weight: 700;
+      color: #00e676;
+    }
+
+    .station-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .back-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #e3f2fd;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .back-btn:hover {
+      background: #bbdefb;
+    }
+
+    .station-note {
+      font-size: 12px;
+      color: #666;
+    }
+
   </style>
 </head>
 <body>
@@ -252,7 +418,8 @@
     <div class="goal">終點</div>
   </div>
 
-  <div class="controls">
+  <!-- ===== 列車調整畫面 ===== -->
+  <div id="controlView" class="controls">
     <div class="toggle-row">
       <button id="btn1"><span>橋 1</span> = <span class="value">0</span></button>
       <button id="btn2"><span>橋 2</span> = <span class="value">1</span></button>
@@ -260,8 +427,53 @@
       <button id="btn4"><span>橋 4</span> = <span class="value">1</span></button>
     </div>
     <button id="startBtn" class="start-btn">開始</button>
+    <button id="viewStationBtn" class="view-station-btn">切換到站長畫面</button>
     <div id="message" class="message"></div>
     <div class="hint">通關條件：橋 1 = 1，橋 2 = 0，橋 3 = 0，橋 4 = 0（也就是 1000）。</div>
+  </div>
+
+  <!-- ===== 站長頁面 ===== -->
+  <div id="stationView" class="station-view hidden">
+    <div class="station-header">
+      <div>站長視角：只能看到機台上的 0 / 1 狀態來判斷能不能放行</div>
+      <div style="font-size:12px;color:#999;">提示：數值來自剛才調整吊橋的按鈕</div>
+    </div>
+    <div class="station-main">
+      <div class="operator">
+        <div class="hat"></div>
+        <div class="head"></div>
+        <div class="body"></div>
+      </div>
+      <div class="console">
+        <div class="screen-frame">
+          <div class="screen-title">[ 橋面狀態監控面板 ]</div>
+          <div class="screen-row">
+            <div class="screen-item">
+              <span class="label">橋 1</span>=
+              <span id="screenVal1" class="value">0</span>
+            </div>
+            <div class="screen-item">
+              <span class="label">橋 2</span>=
+              <span id="screenVal2" class="value">1</span>
+            </div>
+          </div>
+          <div class="screen-row">
+            <div class="screen-item">
+              <span class="label">橋 3</span>=
+              <span id="screenVal3" class="value">1</span>
+            </div>
+            <div class="screen-item">
+              <span class="label">橋 4</span>=
+              <span id="screenVal4" class="value">1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="station-footer">
+      <button id="backBtn" class="back-btn">返回調整吊橋</button>
+      <div class="station-note">站長只能看到這四個數字（1 / 0），就像電腦只能看到高低電位一樣。</div>
+    </div>
   </div>
 
   <script>
@@ -284,6 +496,19 @@
       document.getElementById("btn2"),
       document.getElementById("btn3"),
       document.getElementById("btn4"),
+    ];
+
+    // 站長頁面元素
+    const controlView = document.getElementById("controlView");
+    const stationView = document.getElementById("stationView");
+    const viewStationBtn = document.getElementById("viewStationBtn");
+    const backBtn = document.getElementById("backBtn");
+
+    const screenValEls = [
+      document.getElementById("screenVal1"),
+      document.getElementById("screenVal2"),
+      document.getElementById("screenVal3"),
+      document.getElementById("screenVal4"),
     ];
 
     // 更新某一座橋的畫面：依照 states + 規則
@@ -321,11 +546,28 @@
           bridge.classList.add("bridge-up");
         }
       }
+
+      // 同步到站長螢幕
+      updateStationPanel();
+    }
+
+    // 更新站長螢幕上的 0/1 顯示
+    function updateStationPanel() {
+      for (let i = 0; i < 4; i++) {
+        screenValEls[i].textContent = states[i];
+      }
     }
 
     // 初始化
     for (let i = 0; i < 4; i++) {
       updateBridgeView(i);
+    }
+
+    function resetCarPosition() {
+      // 移除動畫 class，讓車子回到起點
+      car.classList.remove("to-goal", "to-sea");
+      // 強制重繪，確保下一次動畫會觸發
+      void car.offsetWidth;
     }
 
     // 綁定按鈕：點一下在 0 / 1 之間切換
@@ -338,13 +580,6 @@
         msg.className = "message";
       });
     });
-
-    function resetCarPosition() {
-      // 移除動畫 class，讓車子回到起點
-      car.classList.remove("to-goal", "to-sea");
-      // 強制重繪，確保下一次動畫會觸發
-      void car.offsetWidth;
-    }
 
     // 開始模擬
     document.getElementById("startBtn").addEventListener("click", () => {
@@ -361,6 +596,19 @@
         msg.className = "message fail";
         car.classList.add("to-sea");
       }
+    });
+
+    // 切換到站長視角
+    viewStationBtn.addEventListener("click", () => {
+      updateStationPanel();          // 進站長畫面前再同步一次
+      controlView.classList.add("hidden");
+      stationView.classList.remove("hidden");
+    });
+
+    // 返回調整吊橋畫面
+    backBtn.addEventListener("click", () => {
+      stationView.classList.add("hidden");
+      controlView.classList.remove("hidden");
     });
   </script>
 </body>
